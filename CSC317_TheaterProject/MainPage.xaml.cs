@@ -1,5 +1,9 @@
 ﻿using System.Collections.Specialized;
+using System.Formats.Asn1;
 using System.Reflection.Metadata;
+#if IOS || MACCATALYST
+using Foundation;
+#endif
 
 namespace CSC317_TheaterProject
 {
@@ -117,9 +121,80 @@ namespace CSC317_TheaterProject
         }
 
         //Assign to Team 1 Member
-        private void ButtonReserveRange(object sender, EventArgs e)
+        private async void ButtonReserveRange(object sender, EventArgs e)
         {
-            //a comment
+            var seatRange = await DisplayPromptAsync("Enter Seat Range", "Enter the starting and ending seat(ex., A1:A4)");
+
+			if (string.IsNullOrWhiteSpace(seatRange) || !seatRange.Contains(":"))
+			{
+				await DisplayAlert("Error", "Invalid input format. Please enter in the format A1:A4", "Ok");
+				return;
+			}
+
+			//Split input to get start and end seat
+			var seats = seatRange.Split(':');
+			if(seats.Length != 2)
+			{
+				await DisplayAlert("Error", "Invalid format. Please use 'A1:A4'.", "Ok");
+				return;
+			}
+
+			string startSeat = seats[0].Trim();
+			string endSeat = seats[1].Trim();
+
+			int startRow = -1, startColumn = -1;
+			int endRow = -1, endColumn = -1;
+
+			//Find start and end seat position
+			for (int i = 0; i < seatingChart.GetLength(0); i++)
+			{
+				for (int j = 0; j < seatingChart.GetLength(1); j++)
+				{
+					if (seatingChart[i, j].Name == startSeat)
+					{
+						startRow = i;
+						startColumn = j;
+					}
+					if (seatingChart[i, j].Name == endSeat)
+					{
+						endRow = i;
+						endColumn = j;
+					}
+				}
+			}
+
+			//Check if both seats were found
+			if (startRow == -1 || startColumn == -1 || endRow == -1 || endColumn == -1)
+			{
+				await DisplayAlert("Error", "One or both seats were not found.", "Ok");
+				return;
+			}
+
+			//Make sure the range is valid
+			if (startRow == endRow && startColumn <= endColumn)
+			{
+				for (int j = startColumn; j <= endColumn; j++)
+				{
+					if (seatingChart[startRow, j].Reserved)
+					{
+						await DisplayAlert("Error", "One or more seats in this range are already reserved.", "Ok");
+						return;
+					}
+				}
+
+				//If all seats are available reserve them
+				for (int j = startColumn; j <= endColumn; j++)
+				{
+					seatingChart[startRow, j].Reserved = true;
+				}
+
+				await DisplayAlert("Success", $"Seats {startSeat} to {endSeat} have been reserved!", "Ok");
+				RefreshSeating();
+			}
+			else
+			{
+				await DisplayAlert("Error", "Invalid seat range. Ensure the seats are in the same row.", "Ok");
+			}
         }
 
         //Assign to Team 2 Member
