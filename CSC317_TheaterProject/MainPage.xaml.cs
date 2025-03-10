@@ -1,6 +1,7 @@
 ﻿using System.Collections.Specialized;
 using System.Formats.Asn1;
 using System.Reflection.Metadata;
+using System.Threading.Tasks;
 #if IOS || MACCATALYST
 using Foundation;
 #endif
@@ -197,9 +198,40 @@ namespace CSC317_TheaterProject
 			}
         }
 
-        //Assign to Team 2 Member
-        private void ButtonCancelReservation(object sender, EventArgs e)
+        //Assign to Team 2 Member - Grant West
+        private async Task ButtonCancelReservation(object sender, EventArgs e)
         {
+            //Enter seat number for cancellation
+            var seat = await DisplayPromptAsync("Cancel Reservation", "Enter the seat number to cancel reservation:");
+            
+            if (seat != null)
+            {
+                //Loop through the seatingChart to find the seat
+                for (int i = 0; i < seatingChart.GetLength(0); i++)
+                {
+                    for (int j = 0; j < seatingChart.GetLength(1); j++)
+                    {
+                        //Check if the current seat matches the input
+                        if (seatingChart[i, j].Name == seat)
+                        {
+                            //If the seat is reserved, cancel the reservation
+                            if (seatingChart[i, j].Reserved)
+                            {
+                                seatingChart[i, j].Reserved = false;
+                                await DisplayAlert("Reservation Canceled", $"Seat {seat} has been released.", "Ok");
+                                RefreshSeating();
+                            }
+                            else
+                            {
+                                await DisplayAlert("Error", "Seat is not reserved.", "Ok");
+                            }
+                            return;
+                        }
+                    }
+                }
+
+                await DisplayAlert("Error", "Seat was not found.", "Ok");
+            }
 
         }
 
