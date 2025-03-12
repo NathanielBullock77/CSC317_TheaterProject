@@ -126,84 +126,84 @@ namespace CSC317_TheaterProject
         {
             var seatRange = await DisplayPromptAsync("Enter Seat Range", "Enter the starting and ending seat(ex., A1:A4)");
 
-			if (string.IsNullOrWhiteSpace(seatRange) || !seatRange.Contains(":"))
-			{
-				await DisplayAlert("Error", "Invalid input format. Please enter in the format A1:A4", "Ok");
-				return;
-			}
+            if (string.IsNullOrWhiteSpace(seatRange) || !seatRange.Contains(":"))
+            {
+                await DisplayAlert("Error", "Invalid input format. Please enter in the format A1:A4", "Ok");
+                return;
+            }
 
-			//Split input to get start and end seat
-			var seats = seatRange.Split(':');
-			if(seats.Length != 2)
-			{
-				await DisplayAlert("Error", "Invalid format. Please use 'A1:A4'.", "Ok");
-				return;
-			}
+            //Split input to get start and end seat
+            var seats = seatRange.Split(':');
+            if (seats.Length != 2)
+            {
+                await DisplayAlert("Error", "Invalid format. Please use 'A1:A4'.", "Ok");
+                return;
+            }
 
-			string startSeat = seats[0].Trim();
-			string endSeat = seats[1].Trim();
+            string startSeat = seats[0].Trim();
+            string endSeat = seats[1].Trim();
 
-			int startRow = -1, startColumn = -1;
-			int endRow = -1, endColumn = -1;
+            int startRow = -1, startColumn = -1;
+            int endRow = -1, endColumn = -1;
 
-			//Find start and end seat position
-			for (int i = 0; i < seatingChart.GetLength(0); i++)
-			{
-				for (int j = 0; j < seatingChart.GetLength(1); j++)
-				{
-					if (seatingChart[i, j].Name == startSeat)
-					{
-						startRow = i;
-						startColumn = j;
-					}
-					if (seatingChart[i, j].Name == endSeat)
-					{
-						endRow = i;
-						endColumn = j;
-					}
-				}
-			}
+            //Find start and end seat position
+            for (int i = 0; i < seatingChart.GetLength(0); i++)
+            {
+                for (int j = 0; j < seatingChart.GetLength(1); j++)
+                {
+                    if (seatingChart[i, j].Name == startSeat)
+                    {
+                        startRow = i;
+                        startColumn = j;
+                    }
+                    if (seatingChart[i, j].Name == endSeat)
+                    {
+                        endRow = i;
+                        endColumn = j;
+                    }
+                }
+            }
 
-			//Check if both seats were found
-			if (startRow == -1 || startColumn == -1 || endRow == -1 || endColumn == -1)
-			{
-				await DisplayAlert("Error", "One or both seats were not found.", "Ok");
-				return;
-			}
+            //Check if both seats were found
+            if (startRow == -1 || startColumn == -1 || endRow == -1 || endColumn == -1)
+            {
+                await DisplayAlert("Error", "One or both seats were not found.", "Ok");
+                return;
+            }
 
-			//Make sure the range is valid
-			if (startRow == endRow && startColumn <= endColumn)
-			{
-				for (int j = startColumn; j <= endColumn; j++)
-				{
-					if (seatingChart[startRow, j].Reserved)
-					{
-						await DisplayAlert("Error", "One or more seats in this range are already reserved.", "Ok");
-						return;
-					}
-				}
+            //Make sure the range is valid
+            if (startRow == endRow && startColumn <= endColumn)
+            {
+                for (int j = startColumn; j <= endColumn; j++)
+                {
+                    if (seatingChart[startRow, j].Reserved)
+                    {
+                        await DisplayAlert("Error", "One or more seats in this range are already reserved.", "Ok");
+                        return;
+                    }
+                }
 
-				//If all seats are available reserve them
-				for (int j = startColumn; j <= endColumn; j++)
-				{
-					seatingChart[startRow, j].Reserved = true;
-				}
+                //If all seats are available reserve them
+                for (int j = startColumn; j <= endColumn; j++)
+                {
+                    seatingChart[startRow, j].Reserved = true;
+                }
 
-				await DisplayAlert("Success", $"Seats {startSeat} to {endSeat} have been reserved!", "Ok");
-				RefreshSeating();
-			}
-			else
-			{
-				await DisplayAlert("Error", "Invalid seat range. Ensure the seats are in the same row.", "Ok");
-			}
+                await DisplayAlert("Success", $"Seats {startSeat} to {endSeat} have been reserved!", "Ok");
+                RefreshSeating();
+            }
+            else
+            {
+                await DisplayAlert("Error", "Invalid seat range. Ensure the seats are in the same row.", "Ok");
+            }
         }
 
         //Assign to Team 2 Member - Grant West
-        private async Task ButtonCancelReservation(object sender, EventArgs e)
+        private async void ButtonCancelReservation(object sender, EventArgs e)
         {
             //Enter seat number for cancellation
             var seat = await DisplayPromptAsync("Cancel Reservation", "Enter the seat number to cancel reservation:");
-            
+
             if (seat != null)
             {
                 //Loop through the seatingChart to find the seat
@@ -241,11 +241,52 @@ namespace CSC317_TheaterProject
 
         }
 
-        //Assign to Team 4 Member
-        private void ButtonResetSeatingChart(object sender, EventArgs e)
+        //Assign to Team 4 Member - Nathaniel Bullock
+        private async void ButtonResetSeatingChart(object sender, EventArgs e)
         {
+            // Go though each row and column in the seating chart and count the reservations
+            // This is used only for displaying how many reservations are/to be cleared.
+            int TotalReserved = 0;
 
+            for (int i = 0; i < seatingChart.GetLength(0); i++)
+            {
+                for (int j = 0; j < seatingChart.GetLength(1); j++)
+                {
+                    if (seatingChart[i, j].Reserved == true)
+                    {
+                        TotalReserved++;
+                    }
+                }
+            }
+
+            // Ask for a conformation, displaying how many reservations will be cleared.
+            bool confirm = await DisplayAlert("Reset Seating chart", $"Are you sure you want to reset the seating chart? {TotalReserved} reservations will be cleared!", "Yes", "No");
+
+            // If "No" is clicked, Seats will not be cleared.
+            if (!confirm)
+            {
+                return;
+            }
+            else
+            {
+
+                // Go through each row and column in the seating chart and clear reservations
+                for (int i = 0; i < seatingChart.GetLength(0); i++)
+                {
+                    for (int j = 0; j < seatingChart.GetLength(1); j++)
+                    {
+                        seatingChart[i, j].Reserved = false;
+                    }
+                }
+
+                // Refresh the seating view
+                RefreshSeating();
+
+                await DisplayAlert("Reset Seating Chart", $"All {TotalReserved} seat reservations have been cleared.", "Ok");
+
+
+            }
         }
-    }
 
+    }
 }
