@@ -45,7 +45,7 @@ namespace CSC317_TheaterProject
                         if (seatingChart[i, j].Name == seat)
                         {
                             seatingChart[i, j].Reserved = true;
-                            await DisplayAlert("Successfully Reserverd", "Your seat was reserverd successfully!", "Ok");
+                            await DisplayAlert("Successfully Reserved", "Your seat was reserved successfully!", "Ok");
                             RefreshSeating();
                             return;
                         }
@@ -235,10 +235,89 @@ namespace CSC317_TheaterProject
 
         }
 
-        //Assign to Team 3 Member
-        private void ButtonCancelReservationRange(object sender, EventArgs e)
+        // Assign to Team 3 Member - Colin Everett
+private async void ButtonCancelReservationRange(object sender, EventArgs e)
+{
+    var seatRange = await DisplayPromptAsync("Cancel Reservation Range", "Enter the starting and ending seat (ex., A1:A4)");
+
+    if (string.IsNullOrWhiteSpace(seatRange) || !seatRange.Contains(":"))
+    {
+        await DisplayAlert("Error", "Invalid input format. Please enter in the format A1:A4.", "Ok");
+        return;
+    }
+
+    // Split input to get start and end seat
+    var seats = seatRange.Split(':');
+    if (seats.Length != 2)
+    {
+        await DisplayAlert("Error", "Invalid format. Please use 'A1:A4'.", "Ok");
+        return;
+    }
+
+    string startSeat = seats[0].Trim();
+    string endSeat = seats[1].Trim();
+
+    int startRow = -1, startColumn = -1;
+    int endRow = -1, endColumn = -1;
+
+    // Find start and end seat positions
+    for (int i = 0; i < seatingChart.GetLength(0); i++)
+    {
+        for (int j = 0; j < seatingChart.GetLength(1); j++)
         {
-            
+            if (seatingChart[i, j].Name == startSeat)
+            {
+                startRow = i;
+                startColumn = j;
+            }
+            if (seatingChart[i, j].Name == endSeat)
+            {
+                endRow = i;
+                endColumn = j;
+            }
+        }
+    }
+
+    // Check if both seats were found
+    if (startRow == -1 || startColumn == -1 || endRow == -1 || endColumn == -1)
+    {
+        await DisplayAlert("Error", "One or both seats were not found.", "Ok");
+        return;
+    }
+
+    // Make sure the range is valid
+    if (startRow == endRow && startColumn <= endColumn)
+    {
+        bool anyReserved = false;
+
+        // If the seats in-range are reserved, cancel the reservations
+        for (int j = startColumn; j <= endColumn; j++)
+        {
+            if (seatingChart[startRow, j].Reserved)
+            {
+                anyReserved = true;
+                seatingChart[startRow, j].Reserved = false;
+            }
+        }
+
+        if (anyReserved)
+        {
+            await DisplayAlert("Success", $"Seats {startSeat} to {endSeat} have been canceled!", "Ok");
+        }
+        else
+        {
+            await DisplayAlert("Error", "No seats in the range were reserved.", "Ok");
+        }
+
+        RefreshSeating();
+    }
+    else
+    {
+        await DisplayAlert("Error", "Invalid seat range. Ensure the seats are in the same row.", "Ok");
+    }
+}
+
+        main
         }
 
         //Assign to Team 4 Member - Arjav Lamsal
