@@ -317,14 +317,31 @@ private async void ButtonCancelReservationRange(object sender, EventArgs e)
     }
 }
 
-        main
-        }
 
-        //Assign to Team 4 Member - Arjav Lamsal
+
+        //Assign to Team 4 Member - Arjav Lamsal - Nathaniel Bullock
         private async void ButtonResetSeatingChart(object sender, EventArgs e)
         {
+            // Go though each row and column in the seating chart and count the reservations
+            // This is used only for displaying how many reservations are/to be cleared.
+            int TotalReserved = 0;
+
+
+            // Go though each row and column in the seating chart and count the reservations
+            // This is used only for displaying how many reservations are/to be cleared.
+            for (int i = 0; i < seatingChart.GetLength(0); i++)
+            {
+                for (int j = 0; j < seatingChart.GetLength(1); j++)
+                {
+                    if (seatingChart[i, j].Reserved == true)
+                    {
+                        TotalReserved++;
+                    }
+                }
+            }
+
             //Alert to ask for confirmation
-            var result = await DisplayAlert("Reset Seating Chart", "Are you sure you want to reset the seating chart?", "Yes", "No");
+            var result = await DisplayAlert("Reset Seating Chart", $"Are you sure you want to reset the seating chart? {TotalReserved} reservations will be cleared!", "Yes", "No");
             if (!result)
             {
                 return;
@@ -339,7 +356,7 @@ private async void ButtonCancelReservationRange(object sender, EventArgs e)
                 }
             }
             RefreshSeating();
-            await DisplayAlert("Success", "All reservations have been canceled.", "Ok");
+            await DisplayAlert("Success", $"All {TotalReserved} seat reservations have been cleared.", "Ok");
         }
     }
 
